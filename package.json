@@ -1,4 +1,14 @@
 {
+  "name": "gobby-ts",
+  "version": "1.0.1",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "devDependencies": {
     "@types/events": "^3.0.0",
     "@types/uuid": "^8.3.4",

@@ -9,9 +9,10 @@ interface Response {
 export class Gobby extends EventEmitter {
 
     private ws?: WebSocket;
-    // private responses: { [id: string]: (value: Message | PromiseLike<Message>) => void } = {};
     private responses: { [id: string]: Response } = {};
     private janitor: number;
+
+    private joinResolver: (value: string | PromiseLike<string>) => void = () => {};
 
     constructor(
         private addr: string
@@ -50,6 +51,13 @@ export class Gobby extends EventEmitter {
         const msg: Message = JSON.parse(ev.data);
         if (!msg.id) {
             console.error("[Gobby] got invalid message from backend:", msg);
+            return;
+        }
+
+        // check if JOINED
+        if (msg.cmd === "JOINED") {
+            this.joinResolver((msg.args || [""])[0] as string);
+            this.joinResolver = () => {};
             return;
         }
 
@@ -101,10 +109,22 @@ export class Gobby extends EventEmitter {
         });
     }
 
+    public join(name: string, password?: string): Promise<string> {
+        const g = this;
+        return new Promise((resolve) => {
+            if (g.ws && g.ws.readyState == WebSocket.OPEN) {
+                this.ws?.send(`JOIN name:${name} password:${password || ""}`);
+                this.joinResolver = resolve;
+            }
+        });
+    }
+
     public runJanitor() {
+        console.log("[Gobby] Running Janitor ...");
         const now = Date.now();
         for (const id in this.responses) {
             if (now - this.responses[id].time > 10000) { // clear (possible) replies older than 10 seconds
+                console.log("[Gobby] clearing old reply:", this.responses[id]);
                 delete this.responses[id];
             }
         }

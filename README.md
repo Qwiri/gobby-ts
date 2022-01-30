@@ -1,11 +1,11 @@
 # Gobby-TS
 
-[Gobby](/Qwiri/gobby) wrapper for TypeScript.
+[Gobby](https://github.com/Qwiri/gobby) wrapper for TypeScript.
 
 ## Example
 
 ```typescript
-import { Gobby, Message, ö } from ".";
+import { Gobby, Message, ö } from "../src";
 
 (async () => {
     const gobby = new Gobby("ws://localhost:8080");
@@ -17,14 +17,13 @@ import { Gobby, Message, ö } from ".";
         return;
     }
 
-    // debug print received messages
-    gobby.on("receive", (msg: Message) => {
-        console.debug("[Gobby] got message:", msg);
-    });
-
-    gobby.on("send", (msg: Message) => {
-        console.debug("[Gobby] send message:", msg);
-    });
+    // join lobby
+    const user = await gobby.join("foo");
+    if (!user) {
+        console.error("[Gobby] failed to join lobby");
+        return;
+    }
+    console.log("[Gobby] joined lobby as:", user);
 
     gobby.handle("VERSION", (msg: Message) => {
         console.log("[Gobby] received backend version:", msg.args);
@@ -34,6 +33,5 @@ import { Gobby, Message, ö } from ".";
             gobby.send(ö("VERSION", "1.0.0"), msg);
         }
     });
-
 })();
 ```

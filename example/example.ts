@@ -10,14 +10,13 @@ import { Gobby, Message, ö } from "../src";
         return;
     }
 
-    // debug print received messages
-    gobby.on("receive", (msg: Message) => {
-        console.debug("[Gobby] got message:", msg);
-    });
-
-    gobby.on("send", (msg: Message) => {
-        console.debug("[Gobby] send message:", msg);
-    });
+    // join lobby
+    const user = await gobby.join("foo");
+    if (!user) {
+        console.error("[Gobby] failed to join lobby");
+        return;
+    }
+    console.log("[Gobby] joined lobby as:", user);
 
     gobby.handle("VERSION", (msg: Message) => {
         console.log("[Gobby] received backend version:", msg.args);
@@ -27,5 +26,4 @@ import { Gobby, Message, ö } from "../src";
             gobby.send(ö("VERSION", "1.0.0"), msg);
         }
     });
-
 })();
