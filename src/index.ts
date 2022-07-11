@@ -111,10 +111,13 @@ export class Gobby extends EventEmitter {
 
     public join(name: string, password?: string): Promise<string> {
         const g = this;
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             if (g.ws && g.ws.readyState == WebSocket.OPEN) {
                 this.ws?.send(`JOIN name:${name} password:${password || ""}`);
                 this.joinResolver = resolve;
+            } else {
+                console.log("[Gobby] tried to join but socket is not open");
+                reject(undefined);
             }
         });
     }
