@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
-import { EventEmitter, Listener } from "events";
+import { EventEmitter } from "events";
+import { WebSocket, MessageEvent, ErrorEvent } from "ws";
 
 interface Response {
     time: number;
@@ -10,7 +11,7 @@ export class Gobby extends EventEmitter {
 
     private ws?: WebSocket;
     private responses: { [id: string]: Response } = {};
-    private janitor: number;
+    private janitor: NodeJS.Timer;
 
     private joinResolver: (value: string | PromiseLike<string>) => void = () => {};
 
@@ -30,8 +31,8 @@ export class Gobby extends EventEmitter {
             g.ws = new WebSocket(g.addr);
             g.ws.onopen = () => {
                 if (g.ws) {
-                    g.ws.onmessage = (event) => g.onMessage(event);
-                    g.ws.onerror = g.onError;
+                    g.ws.onmessage = (event: MessageEvent) => g.onMessage(event);
+                    g.ws.onerror = (event: ErrorEvent) => g.onError(event);
                 }
                 resolve(g.ws);
             };
@@ -42,13 +43,13 @@ export class Gobby extends EventEmitter {
         });
     }
 
-    private onError(ev: Event) {
+    private onError(ev: ErrorEvent) {
         console.error("[Gobby] socket error:", ev);
     }
 
     private onMessage(ev: MessageEvent) {
         // try to parse message
-        const msg: Message = JSON.parse(ev.data);
+        const msg: Message = JSON.parse(ev.data as string);
         if (!msg.id) {
             console.error("[Gobby] got invalid message from backend:", msg);
             return;
@@ -72,7 +73,7 @@ export class Gobby extends EventEmitter {
         this.emit("handler:" + msg.cmd, msg);
     }
 
-    public handle(cmd: string, listener: Listener) {
+    public handle(cmd: string, listener: (...args: any[]) => void) {
         this.on("handler:" + cmd, listener);
     }
 
