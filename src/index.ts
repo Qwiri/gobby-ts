@@ -1,6 +1,5 @@
 import { v4 } from "uuid";
 import { EventEmitter } from "events";
-import { WebSocket, MessageEvent, ErrorEvent } from "ws";
 
 interface Response {
     time: number;
@@ -32,7 +31,7 @@ export class Gobby extends EventEmitter {
             g.ws.onopen = () => {
                 if (g.ws) {
                     g.ws.onmessage = (event: MessageEvent) => g.onMessage(event);
-                    g.ws.onerror = (event: ErrorEvent) => g.onError(event);
+                    g.ws.onerror = (event: Event) => g.onError(event);
                 }
                 resolve(g.ws);
             };
@@ -43,7 +42,7 @@ export class Gobby extends EventEmitter {
         });
     }
 
-    private onError(ev: ErrorEvent) {
+    private onError(ev: Event) {
         console.error("[Gobby] socket error:", ev);
     }
 
