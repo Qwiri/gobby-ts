@@ -30,7 +30,7 @@ export class Gobby extends EventEmitter {
             g.ws = new WebSocket(g.addr);
             g.ws.onopen = () => {
                 if (g.ws) {
-                    g.ws.onmessage = g.onMessage;
+                    g.ws.onmessage = (event) => g.onMessage(event);
                     g.ws.onerror = g.onError;
                 }
                 resolve(g.ws);
